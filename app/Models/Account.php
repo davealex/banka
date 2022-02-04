@@ -70,11 +70,11 @@ class Account extends Model
     /**
      * Associate related model to a User
      *
-     * @return HasOne
+     * @return BelongsTo
      */
-    public function manager(): HasOne
+    public function manager(): BelongsTo
     {
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class, 'manager');
     }
 
     /**
@@ -111,6 +111,7 @@ class Account extends Model
         return $this->transactions()->create([
             'type' => Transaction::TYPES[$type],
             'amount' => $amount,
+            'user_id' => auth()->id()
         ]);
     }
 }

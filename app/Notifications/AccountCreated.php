@@ -46,7 +46,7 @@ class AccountCreated extends Notification
         return (new MailMessage)
                     ->subject('Bank Account Created!')
                     ->greeting("Hi, {$this->account->user->first_name}!")
-                    ->line('Your new account has been created:')
+                    ->line("Your new {$this->account->type->name} account has been created:")
                     ->line("Account number: {$this->account->number}")
                     ->line("Your current balance is: {$this->account->balance}")
                     ->line('Thank you for banking with us!');

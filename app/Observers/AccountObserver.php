@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Account;
+use App\Notifications\AccountCreated;
 
 class AccountObserver
 {
@@ -25,7 +26,7 @@ class AccountObserver
      */
     public function created(Account $account)
     {
-        //
+        $account->user->notify(new AccountCreated($account));
     }
 
     /**

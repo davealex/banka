@@ -7,36 +7,39 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Notifications\TransactionAlert;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 class BankingService
 {
     protected $amount;
     protected $accounts;
 
-    public function __construct(array $accounts, int $amount)
+    public function __construct(array $accounts)
     {
-        $this->amount = $amount;
+        $this->amount = $accounts['amount'];
         $this->accounts = [
-            'credit' => $accounts['credit'],
-            'debit' => $accounts['debit']
+            'credit' => Account::whereNumber($accounts['credit']),
+            'debit' => Account::whereNumber($accounts['debit'])
         ];
     }
 
-    public function checkBalance(Account $accounts)
+    public function checkBalance($account)
     {
-        return $accounts->balance;
+        return $account->first()->balance;
     }
 
     public function initiateTransfer()
     {
-        $this->AbortIfBalanceIsInsufficient();
+        $this->AbortIfDetailsAreInaccurate();
 
         foreach ($this->accounts as $type => $account) {
-            $transaction = $account->createTransaction($type, $this->amount);
+            $transaction = $account->lockForUpdate()
+                ->first()
+                ->createTransaction($type, $this->amount);
 
-            $this->completeTransfer($type, $account, $transaction);
+            $this->completeTransfer($type, $account->lockForUpdate()->first(), $transaction);
 
-            $this->notifyAccountOwner($account, $transaction);
+            $this->notifyAccountOwner($account->first(), $transaction);
         }
     }
 
@@ -64,8 +67,9 @@ class BankingService
     /**
      * @return void
      */
-    protected function AbortIfBalanceIsInsufficient(): void
+    protected function AbortIfDetailsAreInaccurate(): void
     {
-        abort_if($this->amount <= $this->checkBalance($this->accounts['debit']), 403, 'Insufficient Funds!');
+        abort_unless($this->amount <= $this->checkBalance($this->accounts['debit']), 403, 'Insufficient Funds!');
+        abort_if($this->accounts['credit'] === $this->accounts['debit'], 403, 'Insufficient Funds!');
     }
 }

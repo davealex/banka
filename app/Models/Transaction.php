@@ -54,8 +54,6 @@ class Transaction extends Model
      */
     public function getTypeAttribute($value)
     {
-        $types = self::TYPES;
-
-        return array_search($types[$value], $types);
+        return array_search($value, self::TYPES);
     }
 }

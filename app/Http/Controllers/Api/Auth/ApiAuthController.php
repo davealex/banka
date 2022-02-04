@@ -7,13 +7,14 @@ use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
 use App\Models\User;
 use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class ApiAuthController extends Controller
 {
     use ApiResponse;
 
-    public function register(UserRegisterRequest $request)
+    public function register(UserRegisterRequest $request): JsonResponse
     {
         $user = User::createNewUser($request->validated());
 
@@ -23,13 +24,11 @@ class ApiAuthController extends Controller
         ]);
     }
 
-    public function login(UserLoginRequest $request)
+    public function login(UserLoginRequest $request): JsonResponse
     {
         if (! Auth::attempt($request->validated())) {
             return $this->error('Credentials does not match', 401);
         }
-
-//        $request->session()->regenerate();
 
         $user = $request->user();
 
@@ -57,7 +56,7 @@ class ApiAuthController extends Controller
         ];
     }
 
-    public function user()
+    public function user(): JsonResponse
     {
         return $this->success([
             'user' => request()->user()

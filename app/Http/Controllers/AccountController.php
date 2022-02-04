@@ -2,85 +2,78 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AccountTransferRequest;
 use App\Http\Requests\StoreAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Models\Account;
+use App\Models\Type;
+use App\Models\User;
+use App\Services\BankingService;
+use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
 
 class AccountController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
+    use ApiResponse;
 
     /**
-     * Show the form for creating a new resource.
+     * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @param  StoreAccountRequest  $request
+     * @return JsonResponse
      */
-    public function create()
+    public function generate(StoreAccountRequest $request): JsonResponse
     {
-        //
+        $user = User::createNewUser($request->validated());
+        $type = Type::whereName($request['account_type'])->first();
+        $amount = $request['initial_deposit'];
+
+        return $this->success([
+            'account' => $request->user()
+                ->createCustomerAccount($type, $user, $amount)
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreAccountRequest  $request
-     * @return \Illuminate\Http\Response
+     * @param  Account  $account
+     * @return JsonResponse
      */
-    public function store(StoreAccountRequest $request)
+    public function balance(Account $account): JsonResponse
     {
-        //
+        return $this->success([
+            "{$account->type->name} / {$account->number}" => $account->balance
+        ]);
     }
 
     /**
-     * Display the specified resource.
+     * Store a newly created resource in storage.
      *
-     * @param  \App\Models\Account  $account
-     * @return \Illuminate\Http\Response
+     * @param  Account  $account
+     * @return JsonResponse
      */
-    public function show(Account $account)
+    public function transactions(Account $account): JsonResponse
     {
-        //
+        return $this->success([
+            "{$account->type->name} / {$account->number}" => $account->transactions()->latest()->get()
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Store a newly created resource in storage.
      *
-     * @param  \App\Models\Account  $account
-     * @return \Illuminate\Http\Response
+     * @param  AccountTransferRequest $request
+     * @return JsonResponse
      */
-    public function edit(Account $account)
+    public function transfer(AccountTransferRequest $request): JsonResponse
     {
-        //
-    }
+        (new BankingService($request->validated()))
+            ->initiateTransfer();
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateAccountRequest  $request
-     * @param  \App\Models\Account  $account
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateAccountRequest $request, Account $account)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Account  $account
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Account $account)
-    {
-        //
+        return $this->success([
+            'credited' => Account::firstWhere('number', $request->validated()['credit']),
+            'debited' => Account::firstWhere('number', $request->validated()['debit']),
+        ]);
     }
 }

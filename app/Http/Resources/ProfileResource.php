@@ -27,7 +27,7 @@ class ProfileResource extends JsonResource
             'occupation' => $this->occupation,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'avatar' => new AvatarResource($this->avatar)
+            'avatar' => new AvatarResource($this->upload)
         ];
     }
 }

@@ -106,9 +106,9 @@ class User extends Authenticatable
      */
     public static function assignSanctumToken($user): string
     {
-        if ($user->isSystem() || $user->isAdmin()) {
-            return $user->createToken('token-name', ['auth:admin'])->plainTextToken;
-        } else return $user->createToken('token-name', ['auth:user'])->plainTextToken;
+        if ($user->isAuthorized()) {
+            return $user->createToken(request()->fingerprint(), ['auth:admin'])->plainTextToken;
+        } else return $user->createToken(request()->fingerprint(), ['auth:user'])->plainTextToken;
     }
 
     /**
@@ -121,22 +121,35 @@ class User extends Authenticatable
         return "{$this->first_name} {$this->last_name}";
     }
 
+    /**
+     * @return HasOne
+     */
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
     }
 
+    /**
+     * @return BelongsToMany
+     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class)->withTimestamps();
     }
 
+    /**
+     * @return mixed
+     */
     public function titles()
     {
         return $this->roles->pluck('title')->unique();
     }
 
 
+    /**
+     * @param $role
+     * @return void
+     */
     public function assignRole($role)
     {
         if (is_string($role)) {
@@ -146,21 +159,41 @@ class User extends Authenticatable
         $this->roles()->syncWithoutDetaching($role);
     }
 
+    /**
+     * @return string
+     */
     protected static function randomPasswordGenerator(): string
     {
         return Str::random(8);
     }
 
+    /**
+     * @return bool
+     */
     public function isAdmin(): bool
     {
         return $this->titles()->contains('admin');
     }
 
+    /**
+     * @return bool
+     */
     public function isSystem(): bool
     {
         return $this->titles()->contains('system');
     }
 
+    /**
+     * @return bool
+     */
+    public function isAuthorized(): bool
+    {
+        return $this->isSystem() || $this->isAdmin();
+    }
+
+    /**
+     * @return void
+     */
     public static function createDefaults()
     {
         foreach (static::DEFAULT_USERS as $role => $user) {
@@ -177,11 +210,15 @@ class User extends Authenticatable
 
                 $user->assignRole($role);
 
-                static::assignSanctumToken($user);
+//                static::assignSanctumToken($user);
             }
         }
     }
 
+    /**
+     * @param string $role
+     * @return string
+     */
     protected static function getDefaultPassword(string $role): string
     {
         $roleToUpperCase = Str::upper($role);
@@ -190,11 +227,20 @@ class User extends Authenticatable
         return env($envKey);
     }
 
+    /**
+     * @return HasMany
+     */
     public function managedAccounts(): HasMany
     {
-        return $this->hasMany(Account::class, 'manager');
+        return $this->hasMany(Account::class, 'manager_id');
     }
 
+    /**
+     * @param Type $type
+     * @param User $customer
+     * @param int $amount
+     * @return Model
+     */
     public function createCustomerAccount(Type $type, User $customer, int $amount): Model
     {
         $account = (new Account([
@@ -204,18 +250,26 @@ class User extends Authenticatable
             ->associate($customer)
             ->type()
             ->associate($type);
+
         $this->managedAccounts()
             ->save($account);
 
-        return $account;
+        return $account->refresh()->load('manager');
     }
 
+    /**
+     * @param array $request
+     * @return Model
+     */
     public static function createNewUser(array $request): Model
     {
-        return self::firstOrCreate(['email' => $request['email']], [
-            'first_name' => $request['first_name'],
-            'last_name' => $request['last_name'],
-            'password' => Hash::make(Str::random(8)),
-        ]);
+        return self::firstOrCreate(
+            ['email' => $request['email']],
+            [
+                'first_name' => $request['first_name'],
+                'last_name' => $request['last_name'],
+                'password' => Hash::make(Str::random(8)),
+            ]
+        );
     }
 }

@@ -11,9 +11,9 @@ class StoreAccountRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
-        return true;
+        return $this->user()->isAuthorized();
     }
 
     /**
@@ -21,14 +21,14 @@ class StoreAccountRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'initial_deposit' => ['required', 'integer'],
-            'account_type' => ['required', 'string', 'max:35', 'exists:types,name']
+            'first_name' => ['required', 'string', 'max:35'],
+            'last_name' => ['required', 'string', 'max:35'],
+            'email' => ['required', 'string', 'email', 'max:50'],
+            'initial_deposit' => ['required', 'integer', 'min:1000'],
+            'account_type' => ['required', 'string', 'exists:types,name']
         ];
     }
 }

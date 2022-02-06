@@ -52,6 +52,9 @@ class Type extends Model
         'min_balance'
     ];
 
+    /**
+     * @return void
+     */
     public static function createDefaults()
     {
         foreach (static::DEFAULT_ACCOUNT_TYPES as $currency => $value) {

@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AccountTransferRequest;
 use App\Http\Requests\StoreAccountRequest;
-use App\Http\Requests\UpdateAccountRequest;
+use App\Http\Resources\AccountResource;
+use App\Http\Resources\TransactionResource;
 use App\Models\Account;
 use App\Models\Type;
 use App\Models\User;
@@ -29,8 +30,10 @@ class AccountController extends Controller
         $amount = $request['initial_deposit'];
 
         return $this->success([
-            'account' => $request->user()
+            'account' => new AccountResource(
+                $request->user()
                 ->createCustomerAccount($type, $user, $amount)
+            )
         ]);
     }
 
@@ -43,7 +46,11 @@ class AccountController extends Controller
     public function balance(Account $account): JsonResponse
     {
         return $this->success([
-            "{$account->type->name} / {$account->number}" => $account->balance
+            'account_name' => $account->user->full_name,
+            'account_number' => $account->number,
+            'account_type' => $account->type->name,
+            'account_currency' => $account->type->currency_code,
+            'account_balance' => $account->balance,
         ]);
     }
 
@@ -56,7 +63,11 @@ class AccountController extends Controller
     public function transactions(Account $account): JsonResponse
     {
         return $this->success([
-            "{$account->type->name} / {$account->number}" => $account->transactions()->latest()->get()
+            'account_name' => $account->user->full_name,
+            'account_number' => $account->number,
+            'account_type' => $account->type->name,
+            'account_currency' => $account->type->currency_code,
+            'transactions' => TransactionResource::collection($account->transactions()->latest()->get())
         ]);
     }
 
@@ -68,12 +79,16 @@ class AccountController extends Controller
      */
     public function transfer(AccountTransferRequest $request): JsonResponse
     {
-        (new BankingService($request->validated()))
-            ->initiateTransfer();
+        try {
+            (new BankingService($request->validated()))
+                ->initiateTransfer();
+        } catch (\Exception $exception) {
+            return $this->error($exception->getMessage(), 400);
+        }
 
         return $this->success([
-            'credited' => Account::firstWhere('number', $request->validated()['credit']),
-            'debited' => Account::firstWhere('number', $request->validated()['debit']),
+            'credited' => new AccountResource(Account::firstWhere('number', $request->validated()['credit'])),
+            'debited' => new AccountResource(Account::firstWhere('number', $request->validated()['debit'])),
         ]);
     }
 }

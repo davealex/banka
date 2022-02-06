@@ -14,10 +14,10 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        $this->seedDefaulltUsers();
+        $this->seedDefaultUsers();
     }
 
-    protected function seedDefaulltUsers()
+    protected function seedDefaultUsers()
     {
         User::createDefaults();
     }

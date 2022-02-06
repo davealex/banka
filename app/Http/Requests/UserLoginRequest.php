@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserLoginRequest extends FormRequest
@@ -24,8 +25,8 @@ class UserLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email', 'max:255', 'exists:users,email'],
-            'password' => ['required', 'string', 'min:8'],
+            'email' => ['required', 'email', 'exists:users,email'],
+            'password' => ['required', 'string'],
         ];
     }
 }

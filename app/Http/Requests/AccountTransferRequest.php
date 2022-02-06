@@ -11,9 +11,9 @@ class AccountTransferRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
-        return true;
+        return $this->user()->isAuthorized();
     }
 
     /**
@@ -21,12 +21,23 @@ class AccountTransferRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'credit' => ['required', 'integer', 'exists:accounts,number', 'different:debit'],
             'debit' => ['required', 'integer', 'exists:accounts,number', 'different:credit'],
             'amount' => ['required', 'integer', 'min:1000']
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function messages(): array
+    {
+        return [
+            'credit.different' => 'Same accounts! You cannot transfer from an account to itself.',
+            'debit.different' => 'Same accounts! You cannot transfer from an account to itself.'
         ];
     }
 }

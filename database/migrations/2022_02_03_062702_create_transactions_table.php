@@ -15,8 +15,8 @@ class CreateTransactionsTable extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->foreignId('account_id')->constrained();
+            $table->foreignId('user_id')->constrained()->cascadeOnUpdate();
+            $table->foreignId('account_id')->constrained()->cascadeOnUpdate();
             $table->uuid('ref');
             $table->tinyInteger('type');
             $table->text('remark')->nullable();

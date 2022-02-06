@@ -35,7 +35,7 @@ class Account extends Model
         'ref',
         'type_id',
         'user_id',
-        'manager',
+        'manager_id',
         'number',
         'balance',
         'status'
@@ -48,20 +48,29 @@ class Account extends Model
      */
     protected $with = [
         'user',
-        'type',
-        'manager'
+        'type'
     ];
 
-    public function getAttributeStatus($attributes)
+    /**
+     * @param $attributes
+     * @return false|int|string
+     */
+    public function getStatusAttribute($value): string
     {
-        return array_search($attributes['status'], self::STATUS);
+        return array_search($value, self::STATUS);
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function type(): BelongsTo
     {
         return $this->belongsTo(Type::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
@@ -74,21 +83,14 @@ class Account extends Model
      */
     public function manager(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'manager');
+        return $this->belongsTo(User::class, 'manager_id');
     }
 
     /**
-     * Scope a query to only include accounts managed by specific manager.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Transaction $transaction
+     * @return Account|null
      */
-    public function scopeManagerAccounts($query, User $user): Builder
-    {
-        return $query->where('manager', $user->id);
-    }
-
-    public function credit(Transaction $transaction)
+    public function credit(Transaction $transaction): Model
     {
         $this->update([
             'balance' => $this->balance += $transaction->amount
@@ -97,7 +99,11 @@ class Account extends Model
         return $this->fresh();
     }
 
-    public function debit(Transaction $transaction)
+    /**
+     * @param Transaction $transaction
+     * @return Account|null
+     */
+    public function debit(Transaction $transaction): Model
     {
         $this->update([
             'balance' => $this->balance -= $transaction->amount
@@ -106,6 +112,11 @@ class Account extends Model
         return $this->fresh();
     }
 
+    /**
+     * @param string $type
+     * @param int $amount
+     * @return Model
+     */
     public function createTransaction(string $type, int $amount): Model
     {
         return $this->transactions()->create([

@@ -41,9 +41,9 @@ class Upload extends Model
     }
 
     /**
-     * get specified default type url.
-     *
-     * @return void
+     * @param Model $model
+     * @param string $type
+     * @return string
      */
     public static function defaultUploadUrl(Model $model, string $type): string
     {

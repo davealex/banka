@@ -52,7 +52,7 @@ class Transaction extends Model
      * @param  string  $value
      * @return string
      */
-    public function getTypeAttribute($value)
+    public function getTypeAttribute($value): string
     {
         return array_search($value, self::TYPES);
     }

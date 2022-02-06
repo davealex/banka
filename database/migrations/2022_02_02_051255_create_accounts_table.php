@@ -18,7 +18,7 @@ class CreateAccountsTable extends Migration
             $table->uuid('ref');
             $table->foreignId('type_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignId('manager');
+            $table->foreignId('manager_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('number')->unique();
             $table->unsignedDecimal('balance', 12, 2)->default(0.00);
             $table->tinyInteger('status');

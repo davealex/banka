@@ -20,12 +20,11 @@ Route::middleware(['auth.apikey'])->prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/auth/logout', [App\Http\Controllers\Api\Auth\ApiAuthController::class, 'logoutAllUserDevices']);
 
-//        Route::middleware(['abilities:auth-admin'])->group(function () {
-            Route::get('/user', [App\Http\Controllers\Api\Auth\ApiAuthController::class, 'user']);
+        Route::middleware(['abilities:auth:admin'])->group(function () {
             Route::post('/account/generate', [App\Http\Controllers\AccountController::class, 'generate']);
             Route::post('/accounts/transfer', [App\Http\Controllers\AccountController::class, 'transfer']);
             Route::get('/accounts/{account}/balance', [App\Http\Controllers\AccountController::class, 'balance']);
             Route::get('/accounts/{account}/transactions', [App\Http\Controllers\AccountController::class, 'transactions']);
-//        });
+        });
     });
 });

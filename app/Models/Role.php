@@ -42,6 +42,9 @@ class Role extends Model
     }
 
 
+    /**
+     * @return void
+     */
     public static function createDefaults()
     {
         foreach (self::ROLES as $role) {

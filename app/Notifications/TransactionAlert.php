@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TransactionAlert extends Notification
+class TransactionAlert extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -46,9 +46,9 @@ class TransactionAlert extends Notification
         return (new MailMessage)
                     ->subject('Transaction Alert!')
                     ->greeting("Hi, {$this->transaction->account->user->first_name}!")
-                    ->line("A {$this->transaction->type} transaction of {$this->transaction->amount} has been made on your account:")
+                    ->line("A {$this->transaction->type} transaction of {$this->transaction->account->type->currency_code}" . moneyFormat($this->transaction->amount) . " has been made on your account:")
                     ->line("Account number: {$this->transaction->account->number}.")
-                    ->line("Your new balance is: {$this->transaction->account->balance}.")
+                    ->line("Your new balance is: {$this->transaction->account->type->currency_code}" . moneyFormat($this->transaction->account->balance))
                     ->line('Thank you for banking with us!');
     }
 

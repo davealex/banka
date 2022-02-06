@@ -48,11 +48,14 @@ php artisan apikey:generate {name}
 example: php artisan apikey:generate banka
 ```
 
+## API documentation
+You can test the APIs in Postman. See documentation via the link below:
+[Banka's Postman public documentation](https://documenter.getpostman.com/view/7490481/UVeGrmHi)
+
 ## The powerhouse
 Take a look at one of the most interesting cogs in the system
 [BankingService](https://github.com/davealex/banka/blob/main/app/Services/BankingService.php)
 
-You can test the APIs in Postman
 ```bash
 <?php
 

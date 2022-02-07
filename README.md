@@ -177,6 +177,12 @@ class BankingService
 }
 ```
 
+## Tests
+Run the test suite with the command below:
+```
+php artisan test
+```
+
 ## License
 
 The simulation is built on Laravel framework v8.82.0 on a PHP v7.4.26 server. This software is open-sourced and licensed under the [MIT license](https://opensource.org/licenses/MIT), so feel free to experiment with it.

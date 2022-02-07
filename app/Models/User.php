@@ -209,8 +209,6 @@ class User extends Authenticatable
                 ]));
 
                 $user->assignRole($role);
-
-//                static::assignSanctumToken($user);
             }
         }
     }
